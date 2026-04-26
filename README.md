@@ -1,4 +1,7 @@
-# ⬡ FileShare — Drop & Go
+## 🚀 Live Demo
+[Try FileShare here](https://your-railway-url)
+
+# ⬡ ANYWHERE — Drop & Go
 
 A simple, **no-login** file sharing web app powered by **Cloudinary** for storage.  
 Upload any file → get an 8-character code → share it → anyone enters the code → downloads the file.
