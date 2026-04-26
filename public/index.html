@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anywhere — Drop & Go</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <header>
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">Anywhere</span>
+    </div>
+    <p class="tagline">No accounts. No hassle. Just share.</p>
+  </header>
+
+  <main>
+
+    <!-- ── TAB SWITCHER ── -->
+    <div class="tab-bar">
+      <button class="tab active" data-tab="upload" onclick="switchTab('upload')">
+        <span class="tab-icon">↑</span> Upload File
+      </button>
+      <button class="tab" data-tab="retrieve" onclick="switchTab('retrieve')">
+        <span class="tab-icon">↓</span> Get File
+      </button>
+    </div>
+
+    <!-- ── UPLOAD PANEL ── -->
+    <section id="upload-panel" class="panel active">
+
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-inner">
+          <div class="drop-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 44V20M32 20L22 30M32 20L42 30" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M16 48h32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <p class="drop-title">Drag & Drop your file here</p>
+          <p class="drop-sub">or click to browse — PDF, PPT, images, docs, zip &amp; more</p>
+          <p class="drop-limit">Max 50 MB</p>
+          <span class="btn-browse" id="browseBtn">Choose File</span>
+          <input type="file" id="fileInput" hidden />
+        </div>
+      </div>
+
+      <!-- File Preview Card (shown after selection) -->
+      <div class="file-card hidden" id="fileCard">
+        <div class="file-card-icon" id="fileCardIcon">📄</div>
+        <div class="file-card-info">
+          <p class="file-card-name" id="fileCardName">—</p>
+          <p class="file-card-size" id="fileCardSize">—</p>
+        </div>
+        <button class="file-card-remove" onclick="clearFile()" title="Remove">✕</button>
+      </div>
+
+      <!-- Auto-Delete Options -->
+      <div class="expiration-section hidden" id="expirationSection">
+        <label class="expiration-label">
+          <input type="checkbox" id="enableExpiration" onchange="toggleExpirationOptions()" />
+          <span>Auto-delete this file after</span>
+        </label>
+        <div class="expiration-options hidden" id="expirationOptions">
+          <select id="expirationSelect" class="expiration-select">
+            <option value="">Select duration...</option>
+            <option value="5">5 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="240">4 hours</option>
+            <option value="1440">1 day</option>
+            <option value="10080">1 week</option>
+            <option value="custom">Custom duration...</option>
+          </select>
+          <input type="number" id="customExpiration" class="expiration-input hidden" min="1"
+            placeholder="Enter minutes" />
+        </div>
+      </div>
+
+      <button class="btn-upload" id="uploadBtn" onclick="uploadFile()" disabled>
+        <span class="btn-label">Upload & Generate Code</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <!-- Progress Bar -->
+      <div class="progress-wrap hidden" id="progressWrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <!-- Result Box -->
+      <div class="result-box hidden" id="resultBox">
+        <p class="result-label">Your unique code</p>
+        <div class="code-display" id="codeDisplay">——</div>
+        <p class="result-sub">Save this code. Anyone who enters it can download your file.</p>
+        <div class="result-actions">
+          <button class="btn-copy" onclick="copyCode()">Copy Code</button>
+          <button class="btn-share" onclick="shareCode()">Share</button>
+        </div>
+        <div class="result-meta" id="resultMeta"></div>
+      </div>
+
+    </section>
+
+    <!-- ── RETRIEVE PANEL ── -->
+    <section id="retrieve-panel" class="panel">
+
+      <div class="retrieve-form">
+        <label class="retrieve-label">Enter your 8-character code</label>
+        <div class="code-input-row">
+          <input type="text" id="codeInput" class="code-input" maxlength="8" placeholder="e.g. A3KZ7Q2X"
+            autocomplete="off" spellcheck="false" oninput="onCodeInput()"
+            onkeydown="if(event.key==='Enter') lookupFile()" />
+          <button class="btn-lookup" id="lookupBtn" onclick="lookupFile()" disabled>Find File</button>
+        </div>
+      </div>
+
+      <!-- File Info Card (after lookup) -->
+      <div class="found-card hidden" id="foundCard">
+        <div class="found-icon" id="foundIcon">📄</div>
+        <div class="found-info">
+          <p class="found-name" id="foundName">—</p>
+          <p class="found-meta" id="foundMeta">—</p>
+        </div>
+        <div class="found-actions">
+          <button class="btn-download" id="downloadBtn" onclick="downloadFile()">
+            ↓ Download
+          </button>
+          <button class="btn-delete" id="deleteBtn" onclick="deleteFile()">
+            🗑 Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="error-box hidden" id="errorBox">
+        <span class="error-icon">⚠</span>
+        <span id="errorMsg">Code not found.</span>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Files are stored securely on the server · Built with Node.js + MongoDB + Cloudinary</p>
+  </footer>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
