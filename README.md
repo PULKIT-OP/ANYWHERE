@@ -1,5 +1,5 @@
 ## 🚀 Live Demo
-[Try FileShare here](https://your-railway-url)
+[Try ANYWHERE here](https://your-railway-url)
 
 # ⬡ ANYWHERE — Drop & Go
 
