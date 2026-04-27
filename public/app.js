@@ -284,6 +284,12 @@ async function lookupFile() {
   lookupBtn.disabled = false;
 }
 
+/* ── Preview ───────────────────────────────────────────────────────────────── */
+function previewFile() {
+  if (!foundCode) return;
+  window.open(`/api/preview/${foundCode}`, "_blank");
+}
+
 /* ── Download ──────────────────────────────────────────────────────────────── */
 function downloadFile() {
   if (!foundCode) return;

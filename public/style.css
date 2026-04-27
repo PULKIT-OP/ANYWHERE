@@ -349,6 +349,15 @@ main {
   display: flex; gap: .6rem; flex-shrink: 0;
 }
 
+.btn-preview {
+  padding: .6rem 1.2rem;
+  background: var(--accent); border: none; border-radius: 8px;
+  color: #fff; font-family: var(--sans); font-size: .88rem; font-weight: 700;
+  cursor: pointer; transition: opacity .2s; flex-shrink: 0;
+}
+.btn-preview:hover { opacity: .85; }
+.btn-preview:disabled { opacity: .4; cursor: not-allowed; }
+
 .btn-download {
   padding: .6rem 1.2rem;
   background: var(--success); border: none; border-radius: 8px;

@@ -223,6 +223,34 @@ app.get("/api/download/:code", async (req, res) => {
   }
 });
 
+// GET /api/preview/:code  →  open file in browser (inline) instead of download
+app.get("/api/preview/:code", async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase().trim();
+    const fileDoc = await File.findOne({ code });
+    if (!fileDoc) return res.status(404).json({ error: "File not found." });
+
+    // Check if file has expired → delete immediately and return not found
+    if (fileDoc.expiresAt && new Date() > fileDoc.expiresAt) {
+      await deleteFileFromStorage(fileDoc);
+      return res.status(404).json({ error: "File not found." });
+    }
+
+    // Build a signed URL that opens file inline in browser
+    const signedUrl = cloudinary.url(fileDoc.cloudinaryId, {
+      resource_type: getResourceType(fileDoc.mimeType),
+      type: "upload",
+      sign_url: true,
+      secure: true,
+    });
+
+    res.redirect(signedUrl);
+  } catch (err) {
+    console.error("Preview error:", err);
+    res.status(500).json({ error: "Preview failed." });
+  }
+});
+
 // DELETE /api/file/:code  →  delete file from Cloudinary and MongoDB
 app.delete("/api/file/:code", async (req, res) => {
   try {
