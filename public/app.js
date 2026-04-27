@@ -109,19 +109,24 @@ function toggleExpirationOptions() {
 
 function getExpirationMinutes() {
   const isEnabled = document.getElementById("enableExpiration").checked;
-  if (!isEnabled) return 0;
 
-  const expirationSelect = document.getElementById("expirationSelect");
-  const selectedValue = expirationSelect.value;
+  // If expiration is enabled, get the selected duration
+  if (isEnabled) {
+    const expirationSelect = document.getElementById("expirationSelect");
+    const selectedValue = expirationSelect.value;
 
-  if (selectedValue === "custom") {
-    const customMinutes = parseInt(
-      document.getElementById("customExpiration").value,
-    );
-    return customMinutes > 0 ? customMinutes : 0;
+    if (selectedValue === "custom") {
+      const customMinutes = parseInt(
+        document.getElementById("customExpiration").value,
+      );
+      return customMinutes > 0 ? customMinutes : 4320; // Default to 3 days if invalid
+    }
+
+    return selectedValue ? parseInt(selectedValue) : 4320; // Default to 3 days if not selected
   }
 
-  return selectedValue ? parseInt(selectedValue) : 0;
+  // If expiration is NOT enabled, default to 3 days (4320 minutes)
+  return 4320;
 }
 
 document
@@ -153,11 +158,9 @@ async function uploadFile() {
   const formData = new FormData();
   formData.append("file", selectedFile);
 
-  // Add expiration time if enabled
+  // Add expiration time (always has a value now, with 3-day default)
   const expirationMinutes = getExpirationMinutes();
-  if (expirationMinutes > 0) {
-    formData.append("expirationMinutes", expirationMinutes);
-  }
+  formData.append("expirationMinutes", expirationMinutes);
 
   try {
     // Use XHR for real upload progress

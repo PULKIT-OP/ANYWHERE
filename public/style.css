@@ -231,6 +231,22 @@ main {
 }
 .btn-arrow { font-size: 1.2rem; }
 
+/* ── Auto-Delete Notice ───────────────────────────────────────────────────── */
+.auto-delete-notice {
+  font-size: .85rem;
+  color: var(--muted);
+  text-align: center;
+  margin: .8rem 0;
+  padding: .6rem;
+  background: rgba(124, 108, 255, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+.auto-delete-notice strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 /* ── Progress ─────────────────────────────────────────────────────────────── */
 .progress-wrap {
   height: 6px; background: var(--surface2);
