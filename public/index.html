@@ -90,6 +90,19 @@
         </div>
       </div>
 
+      <!-- Custom Code Options -->
+      <div class="custom-code-section hidden" id="customCodeSection">
+        <label class="custom-code-label">
+          <input type="checkbox" id="enableCustomCode" onchange="toggleCustomCodeInput()" />
+          <span>Set custom code (optional)</span>
+        </label>
+        <div class="custom-code-input-wrap hidden" id="customCodeInputWrap">
+          <input type="text" id="customCodeInput" class="custom-code-input" maxlength="8" placeholder="e.g. MYCODE42"
+            oninput="this.value = this.value.toUpperCase()" />
+          <p class="custom-code-help">8 characters max (A-Z, 0-9). Leave blank for random code.</p>
+        </div>
+      </div>
+
       <button class="btn-upload" id="uploadBtn" onclick="uploadFile()" disabled>
         <span class="btn-label">Upload & Generate Code</span>
         <span class="btn-arrow">→</span>
@@ -133,10 +146,12 @@
 
       <!-- File Info Card (after lookup) -->
       <div class="found-card hidden" id="foundCard">
-        <div class="found-icon" id="foundIcon">📄</div>
-        <div class="found-info">
-          <p class="found-name" id="foundName">—</p>
-          <p class="found-meta" id="foundMeta">—</p>
+        <div class="found-header">
+          <div class="found-icon" id="foundIcon">📄</div>
+          <div class="found-info">
+            <p class="found-name" id="foundName">—</p>
+            <p class="found-meta" id="foundMeta">—</p>
+          </div>
         </div>
         <div class="found-actions">
           <button class="btn-preview" id="previewBtn" onclick="previewFile()">

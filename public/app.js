@@ -76,6 +76,7 @@ function setFile(file) {
 
   document.getElementById("fileCard").classList.remove("hidden");
   document.getElementById("expirationSection").classList.remove("hidden");
+  document.getElementById("customCodeSection").classList.remove("hidden");
   document.getElementById("uploadBtn").disabled = false;
 
   // Reset result
@@ -91,7 +92,31 @@ function clearFile() {
   document.getElementById("expirationSection").classList.add("hidden");
   document.getElementById("enableExpiration").checked = false;
   document.getElementById("expirationOptions").classList.add("hidden");
+  document.getElementById("customCodeSection").classList.add("hidden");
+  document.getElementById("enableCustomCode").checked = false;
+  document.getElementById("customCodeInputWrap").classList.add("hidden");
+  document.getElementById("customCodeInput").value = "";
   document.getElementById("uploadBtn").disabled = true;
+}
+
+/* ── Custom Code Options ──────────────────────────────────────────────────── */
+function toggleCustomCodeInput() {
+  const enableCustomCode = document.getElementById("enableCustomCode").checked;
+  const customCodeInputWrap = document.getElementById("customCodeInputWrap");
+  if (enableCustomCode) {
+    customCodeInputWrap.classList.remove("hidden");
+    document.getElementById("customCodeInput").focus();
+  } else {
+    customCodeInputWrap.classList.add("hidden");
+    document.getElementById("customCodeInput").value = "";
+  }
+}
+
+function getCustomCode() {
+  const isEnabled = document.getElementById("enableCustomCode").checked;
+  if (!isEnabled) return null;
+  const code = document.getElementById("customCodeInput").value.trim();
+  return code.length > 0 ? code : null;
 }
 
 /* ── Expiration Options ────────────────────────────────────────────────────── */
@@ -157,6 +182,12 @@ async function uploadFile() {
   // Animate progress bar (XHR gives real progress; fetch doesn't, so we fake it)
   const formData = new FormData();
   formData.append("file", selectedFile);
+
+  // Get custom code if provided
+  const customCode = getCustomCode();
+  if (customCode) {
+    formData.append("customCode", customCode);
+  }
 
   // Add expiration time (always has a value now, with 3-day default)
   const expirationMinutes = getExpirationMinutes();

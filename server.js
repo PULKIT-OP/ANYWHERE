@@ -100,8 +100,34 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file provided." });
 
     const { originalname, mimetype, size, buffer } = req.file;
-    const { expirationMinutes } = req.body; // Get expiration time from frontend
+    const { expirationMinutes, customCode } = req.body; // Get expiration and custom code from frontend
     const resourceType = getResourceType(mimetype);
+
+    // Validate custom code if provided
+    let code;
+    if (customCode) {
+      // Validate format: 1-8 alphanumeric characters
+      if (!/^[A-Z0-9]{1,8}$/i.test(customCode)) {
+        return res
+          .status(400)
+          .json({ error: "Code must be 1-8 alphanumeric characters." });
+      }
+      // Check if code already exists
+      const existingCode = await File.findOne({
+        code: customCode.toUpperCase(),
+      });
+      if (existingCode) {
+        return res
+          .status(409)
+          .json({
+            error: "This code is already taken. Please choose another.",
+          });
+      }
+      code = customCode.toUpperCase();
+    } else {
+      // Generate random code if no custom code provided
+      code = await uniqueCode();
+    }
 
     // Push buffer straight to Cloudinary — no temp file on disk
     const result = await uploadToCloudinary(buffer, {
@@ -112,8 +138,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       // 'attachment' flag makes raw files download instead of open in browser
       flags: resourceType === "raw" ? "attachment" : undefined,
     });
-
-    const code = await uniqueCode();
 
     // Calculate expiration time if provided
     let expiresAt = null;
