@@ -44,7 +44,7 @@ const File = mongoose.model("File", fileSchema);
 // ── Multer — memory storage (no local disk writes) ──────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB (Cloudinary free plan)
+  limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
 });
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
