@@ -117,11 +117,9 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
         code: customCode.toUpperCase(),
       });
       if (existingCode) {
-        return res
-          .status(409)
-          .json({
-            error: "This code is already taken. Please choose another.",
-          });
+        return res.status(409).json({
+          error: "This code is already taken. Please choose another.",
+        });
       }
       code = customCode.toUpperCase();
     } else {
@@ -139,10 +137,15 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       flags: resourceType === "raw" ? "attachment" : undefined,
     });
 
-    // Calculate expiration time if provided
+    // Calculate expiration time if provided (max 3 days = 4320 minutes)
     let expiresAt = null;
     if (expirationMinutes && expirationMinutes > 0) {
-      expiresAt = new Date(Date.now() + expirationMinutes * 60 * 1000);
+      const MAX_EXPIRATION_MINUTES = 4320; // 3 days
+      const validExpirationMinutes = Math.min(
+        expirationMinutes,
+        MAX_EXPIRATION_MINUTES,
+      );
+      expiresAt = new Date(Date.now() + validExpirationMinutes * 60 * 1000);
     }
 
     const fileDoc = await File.create({

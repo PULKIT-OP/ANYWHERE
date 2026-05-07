@@ -133,6 +133,7 @@ function toggleExpirationOptions() {
 }
 
 function getExpirationMinutes() {
+  const MAX_MINUTES = 4320; // 3 days max
   const isEnabled = document.getElementById("enableExpiration").checked;
 
   // If expiration is enabled, get the selected duration
@@ -144,14 +145,18 @@ function getExpirationMinutes() {
       const customMinutes = parseInt(
         document.getElementById("customExpiration").value,
       );
-      return customMinutes > 0 ? customMinutes : 4320; // Default to 3 days if invalid
+      if (customMinutes > MAX_MINUTES) {
+        showToast("⚠️ Maximum delete time is 3 days (4320 minutes).");
+        return MAX_MINUTES;
+      }
+      return customMinutes > 0 ? customMinutes : MAX_MINUTES; // Default to 3 days if invalid
     }
 
-    return selectedValue ? parseInt(selectedValue) : 4320; // Default to 3 days if not selected
+    return selectedValue ? parseInt(selectedValue) : MAX_MINUTES; // Default to 3 days if not selected
   }
 
   // If expiration is NOT enabled, default to 3 days (4320 minutes)
-  return 4320;
+  return MAX_MINUTES;
 }
 
 document
