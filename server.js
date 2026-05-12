@@ -5,6 +5,7 @@ const multer = require("multer");
 const crypto = require("crypto");
 const path = require("path");
 const { Readable } = require("stream");
+const https = require("https");
 const cloudinary = require("cloudinary").v2;
 
 const app = express();
@@ -44,7 +45,7 @@ const File = mongoose.model("File", fileSchema);
 // ── Multer — memory storage (no local disk writes) ──────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB (Cloudinary account limit)
 });
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -167,9 +168,23 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       expiresAt: expiresAt ? expiresAt.toISOString() : null,
     });
   } catch (err) {
-    console.error("Upload error:", err);
     res.status(500).json({ error: "Upload failed. Please try again." });
   }
+});
+
+// ── Multer Error Handler ────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({
+        error: "File too large. Maximum size is 10 MB.",
+      });
+    }
+    return res.status(400).json({
+      error: "Upload error: " + err.message,
+    });
+  }
+  next(err);
 });
 
 // ── Helper: Delete file from both Cloudinary and MongoDB ────────────────────
@@ -179,10 +194,7 @@ async function deleteFileFromStorage(fileDoc) {
       resource_type: getResourceType(fileDoc.mimeType),
     });
   } catch (cloudinaryErr) {
-    console.warn(
-      `Warning: Could not delete from Cloudinary (${fileDoc.code}):`,
-      cloudinaryErr.message,
-    );
+    // Silently continue if Cloudinary deletion fails
   }
   await File.deleteOne({ code: fileDoc.code });
 }
@@ -214,8 +226,7 @@ app.get("/api/file/:code", async (req, res) => {
   }
 });
 
-// GET /api/download/:code  →  redirect to a signed Cloudinary URL
-// Cloudinary serves the file directly — zero bandwidth cost on your server
+// GET /api/download/:code  →  serve file with correct headers
 app.get("/api/download/:code", async (req, res) => {
   try {
     const code = req.params.code.toUpperCase().trim();
@@ -228,24 +239,22 @@ app.get("/api/download/:code", async (req, res) => {
       return res.status(404).json({ error: "File not found." });
     }
 
-    // Build a signed URL that forces a browser download with the original filename
-    const signedUrl = cloudinary.url(fileDoc.cloudinaryId, {
-      resource_type: getResourceType(fileDoc.mimeType),
-      type: "upload",
-      flags: "attachment",
-      download_url: true,
-      sign_url: true,
-      secure: true,
-    });
-
-    // Add filename to content-disposition header
+    // Set proper headers for download
+    res.setHeader("Content-Type", fileDoc.mimeType);
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${encodeURIComponent(fileDoc.originalName)}"`,
     );
-    res.redirect(signedUrl);
+
+    // Stream the file from Cloudinary
+    https
+      .get(fileDoc.downloadUrl, (cloudinaryRes) => {
+        cloudinaryRes.pipe(res);
+      })
+      .on("error", () => {
+        res.status(500).json({ error: "Download failed." });
+      });
   } catch (err) {
-    console.error("Download error:", err);
     res.status(500).json({ error: "Download failed." });
   }
 });
@@ -263,17 +272,22 @@ app.get("/api/preview/:code", async (req, res) => {
       return res.status(404).json({ error: "File not found." });
     }
 
-    // Build a signed URL that opens file inline in browser
-    const signedUrl = cloudinary.url(fileDoc.cloudinaryId, {
-      resource_type: getResourceType(fileDoc.mimeType),
-      type: "upload",
-      sign_url: true,
-      secure: true,
-    });
+    // Set proper headers for inline viewing (NOT attachment)
+    res.setHeader("Content-Type", fileDoc.mimeType);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${encodeURIComponent(fileDoc.originalName)}"`,
+    );
 
-    res.redirect(signedUrl);
+    // Stream the file from Cloudinary
+    https
+      .get(fileDoc.downloadUrl, (cloudinaryRes) => {
+        cloudinaryRes.pipe(res);
+      })
+      .on("error", () => {
+        res.status(500).json({ error: "Preview failed." });
+      });
   } catch (err) {
-    console.error("Preview error:", err);
     res.status(500).json({ error: "Preview failed." });
   }
 });
@@ -291,7 +305,6 @@ app.delete("/api/file/:code", async (req, res) => {
         resource_type: getResourceType(fileDoc.mimeType),
       });
     } catch (cloudinaryErr) {
-      console.warn("Cloudinary deletion warning:", cloudinaryErr.message);
       // Continue to delete from MongoDB even if Cloudinary delete fails
     }
 
@@ -303,7 +316,6 @@ app.delete("/api/file/:code", async (req, res) => {
       message: "File deleted successfully.",
     });
   } catch (err) {
-    console.error("Delete error:", err);
     res.status(500).json({ error: "Delete failed." });
   }
 });
