@@ -1,9 +1,5 @@
 ## 🚀 Live Demo
-[Try ANYWHERE here](anywhere-production.up.railway.app) anywhere-production.up.railway.app
-
-or 
-
-[Try ANYWHERE here](https://anywhere-eta.vercel.app/) https://anywhere-eta.vercel.app/
+[Try ANYWHERE here](https://anywhere-u826.vercel.app/) https://anywhere-u826.vercel.app/
 anywhere-production.up.railway.app
 
 # ⬡ ANYWHERE — Drop & Go
