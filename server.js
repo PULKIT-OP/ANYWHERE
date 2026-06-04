@@ -19,14 +19,27 @@ cloudinary.config({
 });
 
 // ── MongoDB Connection ──────────────────────────────────────────────────────
+const mongoUri =
+  process.env.MONGO_URI ||
+  process.env.MONGO_URL ||
+  "mongodb://localhost:27017/fileshare";
+
 mongoose
-  .connect(
-    process.env.MONGO_URI ||
-      process.env.MONGO_URL ||
-      "mongodb://localhost:27017/fileshare",
-  )
+  .connect(mongoUri, {
+    maxPoolSize: 5,
+    minPoolSize: 1,
+    maxIdleTimeMS: 45000,
+    connectTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 30000,
+    retryWrites: true,
+    w: "majority",
+  })
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB error:", err);
+    process.exit(1);
+  });
 
 // ── File Schema ─────────────────────────────────────────────────────────────
 const fileSchema = new mongoose.Schema({
